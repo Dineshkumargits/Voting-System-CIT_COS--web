@@ -1,14 +1,149 @@
+<?php
+$page = $_SERVER['PHP_SELF'];
+$sec = "10";
+$servername="localhost";
+
+$username="root";
+
+$password="";
+
+$database="polys";
+
+try{
+
+    $con=new PDO("mysql:host=$servername;dbname=$database",$username,$password);
+
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+}
+
+catch(PDOException $e){
+
+    echo "ERROR:".$e->getMessage();
+
+}
+if(isset($_POST['parties'])&&isset($_POST['aadhar'])){
+$aadhar = $_POST['aadhar'];
+  $val = $con->prepare("SELECT `Reg.No` FROM `polys_table` WHERE `Reg.No`=?");
+  $val->execute(array($aadhar));
+  if(!($val->rowCount()>0)){
+
+  $data = $_POST['parties'];
+
+  $password="abcd";
+  $crypted_text = MyCrypt($data,$password);
+  $crypted_text_reg = MyCrypt($aadhar,$password);
+  $file_name = "files/".$data."-".date("d-m-Y")."-".date("h-i-s").microtime().".txt";
+  $handle = fopen($file_name,'w') or die('Cannot Open file :'.$file_name);
+  fwrite($handle,$crypted_text);
+  fwrite($handle,"\n".$crypted_text_reg);
+  // fwrite($handle,"\n".MyDecrypt($crypted_text,$password));
+  // fwrite($handle,"\n".MyDecrypt($crypted_text_reg,$password));
+  $decrypted_data = MyDecrypt($crypted_text,$password);
+
+  $sql = $con->prepare("INSERT INTO polys_table(`id`,`Reg.No`,`Candidate`) VALUES(?,?,?)");
+
+  $sql->execute(array(NULL,$aadhar,$data));
+
+  echo json_encode(array("status"=>"true"));
+}else {
+echo json_encode(array("status"=>"false"));
+
+}
+
+}
+
+$total_votes = $con->prepare("SELECT Candidate FROM `polys_table`");
+$total_votes->execute();
+$total_votes_res = $total_votes->rowCount();
+
+$cand1 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand1->execute(array("Karthick"));
+
+$cand1_res = $cand1->fetchColumn();
+
+$style_1 = "width : ".$cand1_res."%;";
+
+$cand2 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand2->execute(array("Kavin"));
+
+$cand2_res = $cand2->fetchColumn();
+
+$style_2 = "width : ".$cand2_res."%;";
+
+$cand3 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand3->execute(array("Dinesh"));
+
+$cand3_res = $cand3->fetchColumn();
+
+$style_3 = "width : ".$cand3_res."%;";
+
+$cand4 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand4->execute(array("Manoj"));
+
+$cand4_res = $cand4->fetchColumn();
+
+$style_4 = "width : ".$cand4_res."%;";
+
+
+function MyDecrypt($input,$key){
+        /* Open module, and create IV */
+        $td = mcrypt_module_open('des', '', 'ecb', '');
+        $key = substr($key, 0, mcrypt_enc_get_key_size($td));
+        $iv_size = mcrypt_enc_get_iv_size($td);
+        $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+        /* Initialize encryption handle */
+        if (mcrypt_generic_init($td, $key, $iv) != -1) {
+            /* 2 Reinitialize buffers for decryption */
+            mcrypt_generic_init($td, $key, $iv);
+            $p_t = mdecrypt_generic($td, $input);
+                return $p_t;
+            /* 3 Clean up */
+            mcrypt_generic_deinit($td);
+            mcrypt_module_close($td);
+        }
+} // end function Decrypt()
+
+
+function MyCrypt($input, $key){
+    /* Open module, and create IV */
+    $td = mcrypt_module_open('des', '', 'ecb', '');
+    $key = substr($key, 0, mcrypt_enc_get_key_size($td));
+    $iv_size = mcrypt_enc_get_iv_size($td);
+    $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+    /* Initialize encryption handle */
+    if (mcrypt_generic_init($td, $key, $iv) != -1) {
+        /* 1 Encrypt data */
+        $c_t = mcrypt_generic($td, $input);
+        mcrypt_generic_deinit($td);
+            return $c_t;
+        /* 3 Clean up */
+        mcrypt_generic_deinit($td);
+        mcrypt_module_close($td);
+    }
+}
+  ?>
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
   <head>
+    <meta http-equiv="refresh" content="<?php echo $sec?>;URL='<?php echo $page?>'">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Gentelella Alela! | </title>
+    <title>ADK </title>
 
     <!-- Bootstrap -->
     <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,7 +155,7 @@
     <link href="../vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
     <!-- bootstrap-daterangepicker -->
     <link href="../vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
-    
+
     <!-- Custom Theme Style -->
     <link href="../build/css/custom.min.css" rel="stylesheet">
   </head>
@@ -31,7 +166,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>Gentelella Alela!</span></a>
+              <a href="index.php" class="site_title"><i class="fa fa-paw"></i> <span>ADK!</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -39,11 +174,11 @@
             <!-- menu profile quick info -->
             <div class="profile clearfix">
               <div class="profile_pic">
-                <img src="images/img.jpg" alt="..." class="img-circle profile_img">
+                <img src="images/adk.jpg" alt="..." class="img-circle profile_img">
               </div>
               <div class="profile_info">
                 <span>Welcome,</span>
-                <h2>John Doe</h2>
+                <h2>Dinesh Kumar</h2>
               </div>
             </div>
             <!-- /menu profile quick info -->
@@ -57,9 +192,9 @@
                 <ul class="nav side-menu">
                   <li><a><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="index.html">Dashboard</a></li>
+                      <li><a href="index.php">Dashboard</a></li>
                       <li><a href="index2.html">Dashboard2</a></li>
-                      <li><a href="index3.html">Dashboard3</a></li>
+                      <li><a href="index3.php">Dashboard3</a></li>
                     </ul>
                   </li>
                   <li><a><i class="fa fa-edit"></i> Forms <span class="fa fa-chevron-down"></span></a>
@@ -146,7 +281,7 @@
                         <li><a href="#level1_2">Level One</a>
                         </li>
                     </ul>
-                  </li>                  
+                  </li>
                   <li><a href="javascript:void(0)"><i class="fa fa-laptop"></i> Landing Page <span class="label label-success pull-right">Coming Soon</span></a></li>
                 </ul>
               </div>
@@ -184,7 +319,7 @@
               <ul class="nav navbar-nav navbar-right">
                 <li class="">
                   <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <img src="images/img.jpg" alt="">John Doe
+                    <img src="images/adk.jpg" alt="">Dinesh Kumar
                     <span class=" fa fa-angle-down"></span>
                   </a>
                   <ul class="dropdown-menu dropdown-usermenu pull-right">
@@ -208,49 +343,37 @@
                   <ul id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
                     <li>
                       <a>
-                        <span class="image"><img src="images/img.jpg" alt="Profile Image" /></span>
+                        <span class="image"><img src="images/saran.jpg" alt="Profile Image" /></span>
                         <span>
-                          <span>John Smith</span>
+                          <span>Saran</span>
                           <span class="time">3 mins ago</span>
                         </span>
                         <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
+                          Hy dude! How is going on....
                         </span>
                       </a>
                     </li>
                     <li>
                       <a>
-                        <span class="image"><img src="images/img.jpg" alt="Profile Image" /></span>
+                        <span class="image"><img src="images/arun.jpg" alt="Profile Image" /></span>
                         <span>
-                          <span>John Smith</span>
+                          <span>Arunachalam</span>
                           <span class="time">3 mins ago</span>
                         </span>
                         <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
+                          Hy..What is the Result till now!
                         </span>
                       </a>
                     </li>
                     <li>
                       <a>
-                        <span class="image"><img src="images/img.jpg" alt="Profile Image" /></span>
+                        <span class="image"><img src="images/balaji.jpg" alt="Profile Image" /></span>
                         <span>
-                          <span>John Smith</span>
+                          <span>Balaji</span>
                           <span class="time">3 mins ago</span>
                         </span>
                         <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
-                        </span>
-                      </a>
-                    </li>
-                    <li>
-                      <a>
-                        <span class="image"><img src="images/img.jpg" alt="Profile Image" /></span>
-                        <span>
-                          <span>John Smith</span>
-                          <span class="time">3 mins ago</span>
-                        </span>
-                        <span class="message">
-                          Film festivals used to be do-or-die moments for movie makers. They were where...
+                          Well done dude...
                         </span>
                       </a>
                     </li>
@@ -275,38 +398,24 @@
           <div class="">
             <div class="row top_tiles" style="margin: 10px 0;">
               <div class="col-md-3 col-sm-3 col-xs-6 tile">
-                <span>Total Sessions</span>
-                <h2>231,809</h2>
-                <span class="sparkline_one" style="height: 160px;">
+                <span>Total Votes</span>
+                <h2><?php echo $total_votes_res;?></h2>
+                <!-- <span class="sparkline_one" style="height: 160px;">
                       <canvas width="200" height="60" style="display: inline-block; vertical-align: top; width: 94px; height: 30px;"></canvas>
-                  </span>
+                  </span> -->
               </div>
-              <div class="col-md-3 col-sm-3 col-xs-6 tile">
+              <!-- <div class="col-md-3 col-sm-3 col-xs-6 tile">
                 <span>Total Revenue</span>
                 <h2>$ 231,809</h2>
                 <span class="sparkline_one" style="height: 160px;">
                       <canvas width="200" height="60" style="display: inline-block; vertical-align: top; width: 94px; height: 30px;"></canvas>
                   </span>
-              </div>
-              <div class="col-md-3 col-sm-3 col-xs-6 tile">
-                <span>Total Sessions</span>
-                <h2>231,809</h2>
-                <span class="sparkline_two" style="height: 160px;">
-                      <canvas width="200" height="60" style="display: inline-block; vertical-align: top; width: 94px; height: 30px;"></canvas>
-                  </span> 
-              </div>
-              <div class="col-md-3 col-sm-3 col-xs-6 tile">
-                <span>Total Sessions</span>
-                <h2>231,809</h2>
-                <span class="sparkline_one" style="height: 160px;">
-                      <canvas width="200" height="60" style="display: inline-block; vertical-align: top; width: 94px; height: 30px;"></canvas>
-                  </span>
-              </div>
+              </div> -->
             </div>
             <br />
 
 
-            <div class="row">
+            <!-- <div class="row">
               <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="dashboard_graph x_panel">
                   <div class="row x_title">
@@ -327,14 +436,14 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
 
 
             <div class="row">
               <div class="col-md-4 col-sm-6 col-xs-12">
                 <div class="x_panel fixed_height_320">
                   <div class="x_title">
-                    <h2>App Devices <small>Sessions</small></h2>
+                    <h2>POLYS 2k18 <small>Votes</small></h2>
                     <ul class="nav navbar-right panel_toolbox">
                       <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                       </li>
@@ -353,94 +462,77 @@
                     <div class="clearfix"></div>
                   </div>
                   <div class="x_content">
-                    <h4>App Versions</h4>
+                    <h4>Vote Statistics</h4>
                     <div class="widget_summary">
                       <div class="w_left w_25">
-                        <span>1.5.2</span>
+                        <span>Karthick</span>
                       </div>
                       <div class="w_center w_55">
                         <div class="progress">
-                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 66%;">
+                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="<?php echo $style_1;?>">
                             <span class="sr-only">60% Complete</span>
                           </div>
                         </div>
                       </div>
                       <div class="w_right w_20">
-                        <span>123k</span>
+                        <span><?php echo $cand1_res;?></span>
                       </div>
                       <div class="clearfix"></div>
                     </div>
 
                     <div class="widget_summary">
                       <div class="w_left w_25">
-                        <span>1.5.3</span>
+                        <span>Kavin</span>
                       </div>
                       <div class="w_center w_55">
                         <div class="progress">
-                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 45%;">
+                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="<?php echo $style_2;?>;">
                             <span class="sr-only">60% Complete</span>
                           </div>
                         </div>
                       </div>
                       <div class="w_right w_20">
-                        <span>53k</span>
+                        <span><?php echo $cand2_res;?></span>
                       </div>
                       <div class="clearfix"></div>
                     </div>
                     <div class="widget_summary">
                       <div class="w_left w_25">
-                        <span>1.5.4</span>
+                        <span>Dinesh</span>
                       </div>
                       <div class="w_center w_55">
                         <div class="progress">
-                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 25%;">
+                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="<?php echo $style_3;?>;">
                             <span class="sr-only">60% Complete</span>
                           </div>
                         </div>
                       </div>
                       <div class="w_right w_20">
-                        <span>23k</span>
+                        <span><?php echo $cand3_res;?></span>
                       </div>
                       <div class="clearfix"></div>
                     </div>
                     <div class="widget_summary">
                       <div class="w_left w_25">
-                        <span>1.5.5</span>
+                        <span>Manoj</span>
                       </div>
                       <div class="w_center w_55">
                         <div class="progress">
-                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style=" <?php echo $style_4;?>;">
                             <span class="sr-only">60% Complete</span>
                           </div>
                         </div>
                       </div>
                       <div class="w_right w_20">
-                        <span>3k</span>
+                        <span><?php echo $cand4_res;?></span>
                       </div>
                       <div class="clearfix"></div>
                     </div>
-                    <div class="widget_summary">
-                      <div class="w_left w_25">
-                        <span>0.1.5.6</span>
-                      </div>
-                      <div class="w_center w_55">
-                        <div class="progress">
-                          <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 2%;">
-                            <span class="sr-only">60% Complete</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="w_right w_20">
-                        <span>1k</span>
-                      </div>
-                      <div class="clearfix"></div>
-                    </div>
-
                   </div>
                 </div>
               </div>
 
-              <div class="col-md-4 col-sm-6 col-xs-12">
+              <!-- <div class="col-md-4 col-sm-6 col-xs-12">
                 <div class="x_panel fixed_height_320">
                   <div class="x_title">
                     <h2>Daily users <small>Sessions</small></h2>
@@ -518,9 +610,9 @@
                   </table>
                   </div>
                 </div>
-              </div>
+              </div> -->
 
-              <div class="col-md-4 col-sm-6 col-xs-12">
+              <!-- <div class="col-md-4 col-sm-6 col-xs-12">
                 <div class="x_panel fixed_height_320">
                   <div class="x_title">
                     <h2>Profile Settings <small>Sessions</small></h2>
@@ -656,7 +748,7 @@
               </div>
 
               <!-- start of weather widget -->
-              <div class="col-md-4 col-sm-6 col-xs-12">
+              <!-- <div class="col-md-4 col-sm-6 col-xs-12">
                 <div class="x_panel">
                   <div class="x_title">
                     <h2>Today's Weather <small>Sessions</small></h2>
@@ -782,10 +874,10 @@
                   </div>
                 </div>
 
-              </div>
+              </div> -->
               <!-- end of weather widget -->
 
-              <div class="col-md-4 col-sm-6 col-xs-12">
+            <!--  <div class="col-md-4 col-sm-6 col-xs-12">
                 <div class="x_panel fixed_height_320">
                   <div class="x_title">
                     <h2>Incomes <small>Sessions</small></h2>
@@ -827,7 +919,7 @@
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

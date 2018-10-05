@@ -1,8 +1,6 @@
 <?php
-$o1=43;
-$o2=45;
-$o3=0;
-$o4=0;
+$page = $_SERVER['PHP_SELF'];
+$sec = "1";
 $servername="localhost";
 
 $username="root";
@@ -25,10 +23,13 @@ catch(PDOException $e){
 
 }
 if(isset($_POST['parties'])&&isset($_POST['aadhar'])){
-  $page = $_SERVER['PHP_SELF'];
-  $sec = "10";
+$aadhar = $_POST['aadhar'];
+  $val = $con->prepare("SELECT `Reg.No` FROM `polys_table` WHERE `Reg.No`=?");
+  $val->execute(array($aadhar));
+  if(!($val->rowCount()>0)){
+
   $data = $_POST['parties'];
-  $aadhar = $_POST['aadhar'];
+
   $password="abcd";
   $crypted_text = MyCrypt($data,$password);
   $file_name = "files/".$data."-".date("d-m-Y")."-".date("h-i-s").microtime().".txt";
@@ -38,53 +39,50 @@ if(isset($_POST['parties'])&&isset($_POST['aadhar'])){
   $decrypted_data = MyDecrypt($crypted_text,$password);
 
 
-  $sql = $con->prepare("INSERT INTO polys_table(`id`,`aadhar`,`parties`) VALUES(?,?,?)");
+  $sql = $con->prepare("INSERT INTO polys_table(`id`,`Reg.No`,`Candidate`) VALUES(?,?,?)");
 
   $sql->execute(array(NULL,$aadhar,$data));
 
-  $retrieve = $con->prepare("SELECT count(*) FROM polys_table GROUP BY `parties`");
+  echo json_encode(array("status"=>"true"));
+}else {
+echo json_encode(array("status"=>"false"));
 
-  $retrieve->execute(array($data));
-  // var_dump($retrieve->execute());
-  // echo $retrieve->execute();
-  // print_r($retrieve->fetchAll());
-  $retrieve->setFetchMode(PDO::FETCH_ASSOC);
-  // echo "string";
-  // var_dump($retrieve->execute());
-  if($retrieve->rowCount()>0){
-    while ($row[] = $retrieve->fetchAll()) {
-      // $res = $row;
-      // echo $res;
-      print_r($row[0]);
-      // if($row=="BJP"){
-      //   echo "entyer";
-      //   $o1++;
-      // }elseif ($row == "CONGRESS") {
-      //   $o2++;
-      // }elseif ($row == "AIADMK") {
-      //   $o3++;
-      // }elseif ($row == "DMK") {
-      //   $o4++;
-      // }
-    }
-  }
-
-
-
-
-// $data1=crypt($data);
-//   echo crypt($data1);
-
-if ($data == "BJP"){
-  $o1++;
-}elseif ($data == "CONGRESS") {
-  $o2++;
-}elseif ($data == "AIADMK") {
-  $o3++;
-}elseif ($data == "DMK") {
-  $o4++;
 }
+
 }
+
+$cand1 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand1->execute(array("Karthick"));
+
+$cand1_res = $cand1->fetchColumn();
+
+$style_1 = "width : ".$cand1_res."%;";
+
+$cand2 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand2->execute(array("Kavin"));
+
+$cand2_res = $cand2->fetchColumn();
+
+$style_2 = "width : ".$cand2_res."%;";
+
+$cand3 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand3->execute(array("Dinesh"));
+
+$cand3_res = $cand3->fetchColumn();
+
+$style_3 = "width : ".$cand3_res."%;";
+
+$cand4 = $con->prepare("SELECT COUNT(`id`) FROM polys_table WHERE `Candidate`=?");
+
+$cand4->execute(array("Manoj"));
+
+$cand4_res = $cand4->fetchColumn();
+
+$style_4 = "width : ".$cand4_res."%;";
+
 
 function MyDecrypt($input,$key){
         /* Open module, and create IV */
@@ -248,7 +246,7 @@ function MyCrypt($input, $key){
           <div class="col-md-4 col-md-offset-2">
               <div class="x_panel tile fixed_height_320">
                 <div class="x_title">
-                  <h2>App Versions</h2>
+                  <h2>POLYS 2k18</h2>
                   <ul class="nav navbar-right panel_toolbox">
                     <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
                     </li>
@@ -267,93 +265,75 @@ function MyCrypt($input, $key){
                   <div class="clearfix"></div>
                 </div>
                 <div class="x_content">
-                  <h4>App Usage across versions</h4>
+                  <h4>Vote Statistics</h4>
                   <div class="widget_summary">
                     <div class="w_left w_25">
-                      <span>BJP</span>
+                      <span>Karthick</span>
                     </div>
                     <div class="w_center w_55">
                       <div class="progress">
-                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $o1."%";?>;">
+                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="<?php echo $style_1;?>">
                           <span class="sr-only">60% Complete</span>
                         </div>
                       </div>
                     </div>
                     <div class="w_right w_20">
-                      <span><?php echo $o1;?></span>
+                      <span><?php echo $cand1_res;?></span>
                     </div>
                     <div class="clearfix"></div>
                   </div>
 
                   <div class="widget_summary">
                     <div class="w_left w_25">
-                      <span>CONGRESS</span>
+                      <span>Kavin</span>
                     </div>
                     <div class="w_center w_55">
                       <div class="progress">
-                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $o2."%";?>;">
+                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $style_2."%";?>;">
                           <span class="sr-only">60% Complete</span>
                         </div>
                       </div>
                     </div>
                     <div class="w_right w_20">
-                      <span><?php echo $o2;?></span>
+                      <span><?php echo $cand2_res;?></span>
                     </div>
                     <div class="clearfix"></div>
                   </div>
                   <div class="widget_summary">
                     <div class="w_left w_25">
-                      <span>AIADMK</span>
+                      <span>Dinesh</span>
                     </div>
                     <div class="w_center w_55">
                       <div class="progress">
-                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $o3."%";?>;">
+                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $style_3."%";?>;">
                           <span class="sr-only">60% Complete</span>
                         </div>
                       </div>
                     </div>
                     <div class="w_right w_20">
-                      <span><?php echo $o3;?></span>
+                      <span><?php echo $cand3_res;?></span>
                     </div>
                     <div class="clearfix"></div>
                   </div>
                   <div class="widget_summary">
                     <div class="w_left w_25">
-                      <span>DMK</span>
+                      <span>Manoj</span>
                     </div>
                     <div class="w_center w_55">
                       <div class="progress">
-                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $o4."%";?>;">
+                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $style_4."%";?>;">
                           <span class="sr-only">60% Complete</span>
                         </div>
                       </div>
                     </div>
                     <div class="w_right w_20">
-                      <span><?php echo $o4;?></span>
+                      <span><?php echo $cand4_res;?></span>
                     </div>
                     <div class="clearfix"></div>
                   </div>
-                  <div class="widget_summary">
-                    <div class="w_left w_25">
-                      <span>0.1.5.6</span>
-                    </div>
-                    <div class="w_center w_55">
-                      <div class="progress">
-                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 2%;">
-                          <span class="sr-only">60% Complete</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="w_right w_20">
-                      <span>1k</span>
-                    </div>
-                    <div class="clearfix"></div>
-                  </div>
-
                 </div>
               </div>
             </div>
-
               </div>
                 <!-- end of weather widget -->
 
